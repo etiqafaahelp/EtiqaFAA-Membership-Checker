@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Search Name</title>
+  <style>
+    :root{
+      --green:#2ecc71;
+      --red:#e74c3c;
+      --muted:#666;
+      --max-width:520px;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
+      margin:0;
+      background:#f7f9fc;
+      color:#111;
+      padding:24px;
+    }
+
+    .card {
+      width:100%;
+      max-width:var(--max-width);
+      background:white;
+      border-radius:12px;
+      box-shadow:0 6px 20px rgba(20,30,50,0.08);
+      padding:28px;
+      text-align:center;
+    }
+
+    img.logo {
+      width:450px;
+      height:auto;
+      display:block;
+      margin:0 auto 12px;
+    }
+
+    h2 { margin:6px 0 18px; font-size:1.25rem; }
+
+    .row { display:flex; gap:8px; justify-content:center; align-items:center; margin-top:8px; }
+    input[type="text"]{
+      padding:10px 12px;
+      border:1px solid #e0e6ef;
+      border-radius:8px;
+      width:240px;
+      font-size:1rem;
+      outline:none;
+    }
+    button {
+      padding:10px 14px;
+      border-radius:8px;
+      border:0;
+      background:#2065d1;
+      color:white;
+      font-weight:600;
+      cursor:pointer;
+    }
+    button:active { transform:translateY(1px); }
+
+    .result {
+      margin-top:20px;
+      min-height:56px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+    }
+
+    .name {
+      font-size:1.1rem;
+      font-weight:600;
+    }
+
+    .badge {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      font-weight:700;
+      font-size:0.95rem;
+    }
+
+    .badge svg { width:18px; height:18px; display:block; }
+
+    .member {
+      background: rgba(46,204,113,0.12);
+      color:var(--green);
+      box-shadow: 0 1px 0 rgba(46,204,113,0.06) inset;
+    }
+
+    .nonmember {
+      background: rgba(231,76,60,0.09);
+      color:var(--red);
+      box-shadow: 0 1px 0 rgba(231,76,60,0.04) inset;
+    }
+
+    .muted { color:var(--muted); font-size:0.95rem; }
+
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+  <div class="card" role="main" aria-labelledby="mainTitle">
+    <!-- LOGO: replace the src with your hosted image URL -->
+    <img src="https://raw.githubusercontent.com/etiqafaahelp/EtiqaFAA-Membership-Checker/refs/heads/main/EtiqaFAA%20Logo.PNG" class="logo">
+
+    <h2 id="mainTitle">ETIQAFAA MEMBERSHIP</h2>
+    <h2 id="mainTitle">Enter Your Agent Code: eg:1EI00001</h2>
+
+    <div class="row" role="search" aria-label="Search identity number">
+      <input id="identity" type="text" inputmode="numeric" placeholder="Enter Agent Code" />
+      <button id="searchBtn" type="button">Search</button>
+    </div>
+
+    <div class="result" id="resultArea" aria-live="polite">
+      <div id="nameDisplay" class="name hidden"></div>
+
+      <!-- Member badge -->
+      <div id="memberBadge" class="badge member hidden" role="status" aria-hidden="true">
+        <!-- check SVG -->
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Member
+      </div>
+
+      <!-- Non-Member badge -->
+      <div id="nonMemberBadge" class="badge nonmember hidden" role="status" aria-hidden="true">
+        <!-- cross SVG -->
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Non-Member
+      </div>
+
+      <div id="helper" class="muted">Enter Agent Code and press Search</div>
+    </div>
+  </div>
+
+  <script>
+    // Replace with your Apps Script Web App URL
+    const apiUrl = "https://script.google.com/macros/s/AKfycbzNKTxnWEsNXipsJTvFeS1Kwth8E0pnMWal6do07HbvvleocKVw2gh4IKV_HDj9knJT/exec";
+
+    const searchBtn = document.getElementById('searchBtn');
+    const identityInput = document.getElementById('identity');
+
+    const nameDisplay = document.getElementById('nameDisplay');
+    const memberBadge = document.getElementById('memberBadge');
+    const nonMemberBadge = document.getElementById('nonMemberBadge');
+    const helper = document.getElementById('helper');
+
+    function showMember(name) {
+      nameDisplay.textContent = name;
+      nameDisplay.classList.remove('hidden');
+      memberBadge.classList.remove('hidden');
+      nonMemberBadge.classList.add('hidden');
+      helper.classList.add('hidden');
+    }
+
+    function showNonMember() {
+      nameDisplay.textContent = '';
+      nameDisplay.classList.add('hidden');
+      memberBadge.classList.add('hidden');
+      nonMemberBadge.classList.remove('hidden');
+      helper.classList.add('hidden');
+    }
+
+    function showError(text) {
+      nameDisplay.textContent = text;
+      nameDisplay.classList.remove('hidden');
+      nameDisplay.style.color = '#e67e22'; // orange for error message
+      memberBadge.classList.add('hidden');
+      nonMemberBadge.classList.add('hidden');
+      helper.classList.add('hidden');
+    }
+
+    async function searchName() {
+      // reset styles
+      nameDisplay.style.color = '';
+      const id = identityInput.value.trim().toUpperCase();
+      if (!id) {
+        showError('Please enter an identity number.');
+        return;
+      }
+
+      try {
+        const resp = await fetch(apiUrl + '?id=' + encodeURIComponent(id), { method: 'GET' });
+        if (!resp.ok) {
+          showError('Server error: ' + resp.status);
+          return;
+        }
+        const data = await resp.json();
+
+        // The Apps Script example returns {id: ..., name: "Not Found"} when missing.
+        // We treat empty / "Not Found" / absence as non-member.
+        const name = (data && data.name) ? String(data.name).trim() : '';
+
+        if (name && name.toLowerCase() !== 'not found') {
+          showMember(name);
+        } else {
+          showNonMember();
+        }
+      } catch (err) {
+        showError('Network error. Check the API URL and permissions.');
+        console.error(err);
+      }
+    }
+
+    // support pressing Enter in the input
+    identityInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') searchName();
+    });
+    searchBtn.addEventListener('click', searchName);
+  </script>
+</body>
+</html>
